@@ -1,123 +1,132 @@
 import React, { useState } from 'react';
+import TaskList from './components/TaskList';
+import TaskForm from './components/TaskForm';
+import TaskDetails from './components/TaskDetails';
+import DocumentUpload from './components/DocumentUpload';
+import VoiceRecorder from './components/VoiceRecorder';
+import TaskViews from './components/TaskViews';
 
 const App = () => {
   const [showTaskDetails, setShowTaskDetails] = useState(false);
-  
-  // נתוני דוגמה למשימות
+  const [selectedTask, setSelectedTask] = useState<any>(null);
+
+  // נתוני דוגמה
   const mockTasks = [
     {
       id: '1',
       title: 'התקנת חלונות בקומה 5',
       description: 'התקנת חלונות אלומיניום בכל הדירות בקומה 5',
       category: 'אלומיניום',
-      status: 'פתוח',
+      status: 'OPEN',
       assignee: 'יוסי כהן',
-      dueDate: '2024-02-15'
-    },
-    {
-      id: '2',
-      title: 'ריצוף לובי כניסה',
-      description: 'ריצוף שיש בלובי הכניסה',
-      category: 'ריצוף',
-      status: 'בביצוע',
-      assignee: 'משה דוד',
-      dueDate: '2024-02-20'
+      dueDate: '2024-02-15',
+      views: [
+        { userId: '1', userName: 'ישראל ישראלי', timestamp: new Date() },
+        { userId: '2', userName: 'משה כהן', timestamp: new Date() }
+      ],
+      documents: [
+        { id: '1', name: 'מפרט טכני.pdf', url: '#' },
+        { id: '2', name: 'תכנית התקנה.docx', url: '#' }
+      ]
     }
   ];
 
+  const handleSaveTask = (taskData: any) => {
+    console.log('שמירת משימה:', taskData);
+    setShowTaskDetails(false);
+  };
+
+  const handleVoiceTranscription = (text: string) => {
+    if (selectedTask) {
+      setSelectedTask({
+        ...selectedTask,
+        description: text
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100" dir="rtl">
-      {/* כותרת */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <h1 className="text-xl font-bold">ניהול משימות בנייה</h1>
+      {/* תפריט ניווט */}
+      <nav className="bg-white shadow-sm fixed top-0 w-full z-50">
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <div className="flex justify-between items-center">
+            <h1 className="text-xl font-bold">ניהול משימות בנייה</h1>
+            <span className="text-sm text-gray-600">שלום, ישראל</span>
+          </div>
         </div>
-      </header>
+      </nav>
 
       {/* תוכן ראשי */}
-      <main className="max-w-7xl mx-auto px-4 py-6">
-        {/* כותרת ראשית */}
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-lg font-semibold">משימות פעילות</h2>
-          <button 
-            onClick={() => setShowTaskDetails(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-          >
-            משימה חדשה +
-          </button>
-        </div>
-
-        {/* רשימת משימות */}
-        <div className="grid gap-4">
-          {mockTasks.map(task => (
-            <div 
-              key={task.id}
-              className="bg-white rounded-lg shadow p-4"
+      <main className="pt-16 pb-20">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          {/* כותרת וכפתור הוספה */}
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold">משימות פעילות</h2>
+            <button 
               onClick={() => setShowTaskDetails(true)}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
             >
-              <h3 className="font-medium mb-2">{task.title}</h3>
-              <p className="text-sm text-gray-600 mb-2">{task.description}</p>
-              <div className="flex justify-between items-center text-sm">
-                <span>{task.assignee}</span>
-                <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
-                  {task.status}
-                </span>
-              </div>
-            </div>
-          ))}
+              משימה חדשה +
+            </button>
+          </div>
+
+          {/* רשימת משימות */}
+          <TaskList 
+            tasks={mockTasks}
+            onTaskClick={(task) => {
+              setSelectedTask(task);
+              setShowTaskDetails(true);
+            }}
+          />
         </div>
       </main>
 
       {/* מודל פרטי משימה */}
       {showTaskDetails && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg w-full max-w-md">
-            <div className="p-6 border-b">
-              <div className="flex justify-between items-start">
-                <h2 className="text-lg font-semibold">פרטי משימה</h2>
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto">
+          <div className="min-h-screen flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg w-full max-w-2xl">
+              <div className="p-6 border-b flex justify-between items-start">
+                <h2 className="text-xl font-bold">
+                  {selectedTask ? 'עריכת משימה' : 'משימה חדשה'}
+                </h2>
                 <button 
-                  onClick={() => setShowTaskDetails(false)}
+                  onClick={() => {
+                    setShowTaskDetails(false);
+                    setSelectedTask(null);
+                  }}
                   className="text-gray-500"
                 >
                   ✕
                 </button>
               </div>
-            </div>
-            <div className="p-6">
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">כותרת</label>
-                  <input 
-                    type="text"
-                    className="w-full p-2 border rounded-lg"
+              
+              <div className="p-6">
+                <TaskForm
+                  initialData={selectedTask}
+                  onSubmit={handleSaveTask}
+                />
+
+                {/* העלאת מסמכים */}
+                <div className="mt-6">
+                  <h3 className="text-lg font-medium mb-4">מסמכים מצורפים</h3>
+                  <DocumentUpload 
+                    taskId={selectedTask?.id}
+                    existingDocuments={selectedTask?.documents || []}
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">תיאור</label>
-                  <textarea 
-                    className="w-full p-2 border rounded-lg"
-                    rows={4}
-                  />
+
+                {/* הקלטה קולית */}
+                <div className="mt-6">
+                  <h3 className="text-lg font-medium mb-4">הוספת תיאור בהקלטה</h3>
+                  <VoiceRecorder onTranscription={handleVoiceTranscription} />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">אחראי</label>
-                    <input 
-                      type="text"
-                      className="w-full p-2 border rounded-lg"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">תאריך יעד</label>
-                    <input 
-                      type="date"
-                      className="w-full p-2 border rounded-lg"
-                    />
-                  </div>
-                </div>
-                <button className="w-full bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700">
-                  שמור משימה
-                </button>
+
+                {/* צפיות במשימה */}
+                {selectedTask && (
+                  <TaskViews views={selectedTask.views || []} />
+                )}
               </div>
             </div>
           </div>
